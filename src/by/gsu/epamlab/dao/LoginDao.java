@@ -4,5 +4,5 @@ import by.gsu.epamlab.beans.Login;
 
 public interface LoginDao {
     public int create(Login login);
-    public Login get(int id);
+    public Login get(String name);
 }

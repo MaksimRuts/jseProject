@@ -2,14 +2,14 @@ package by.gsu.epamlab.beans;
 
 public class Test {
     private int testId;
-    private String test;
+    private String name;
 
     public Test() {
     }
 
-    public Test(int testId, String test) {
+    public Test(int testId, String name) {
         this.testId = testId;
-        this.test = test;
+        this.name = name;
     }
 
     public int getTestId() {
@@ -20,16 +20,16 @@ public class Test {
         this.testId = testId;
     }
 
-    public String getTest() {
-        return test;
+    public String getName() {
+        return name;
     }
 
-    public void setTest(String test) {
-        this.test = test;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
     public String toString() {
-        return test;
+        return name;
     }
 }

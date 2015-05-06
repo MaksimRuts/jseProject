@@ -2,14 +2,14 @@ package by.gsu.epamlab.beans;
 
 public class Login {
     private int loginId;
-    private String login;
+    private String name;
 
     public Login() {
     }
 
-    public Login(int loginId, String login) {
+    public Login(int loginId, String name) {
         this.loginId = loginId;
-        this.login = login;
+        this.name = name;
     }
 
     public int getLoginId() {
@@ -20,16 +20,16 @@ public class Login {
         this.loginId = loginId;
     }
 
-    public String getLogin() {
-        return login;
+    public String getName() {
+        return name;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
     public String toString() {
-        return login;
+        return name;
     }
 }
