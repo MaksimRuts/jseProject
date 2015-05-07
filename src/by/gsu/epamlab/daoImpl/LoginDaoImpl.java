@@ -13,14 +13,14 @@ import java.sql.SQLException;
 public class LoginDaoImpl implements LoginDao {
     private static final String PREPARE_INSERT_LOGIN = "INSERT INTO logins (name) VALUES (?);";
 
-    PreparedStatement preparedStatement;
+    private PreparedStatement preparedStatement;
 
     public LoginDaoImpl() {
     }
 
     @Override
     public int create(Login login) {
-        int result = 0;
+        int id = 0;
         try {
             preparedStatement = BaseConnection.get().prepareStatement(BaseManagmentQueries.PREPARE_INSERT_NAMES_TO_LOGINS);
             preparedStatement.setString(1, login.getName());
@@ -29,20 +29,21 @@ public class LoginDaoImpl implements LoginDao {
             } catch (MySQLIntegrityConstraintViolationException e) {
                 // если выскочило исклюение - значит такая запись уже есть в базе, обработка не нужна
             } finally {
-                result = get(login.getName()).getLoginId();
+                id = get(login.getName()).getLoginId();
             }
         } catch (SQLException e) {
+            // TODO обработать исключение
             e.printStackTrace();
         }
 
-        return result;
+        return id;
     }
 
     @Override
     public Login get(String name) {
         Login login = null;
         try {
-            preparedStatement = BaseConnection.get().prepareStatement(BaseManagmentQueries.PREPARE_SELECT_NAMES_IN_LOGINS);
+            preparedStatement = BaseConnection.get().prepareStatement(BaseManagmentQueries.PREPARE_SELECT_NAMES_FROM_LOGINS);
             preparedStatement.setString(1, name);
             ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.next();
@@ -51,6 +52,7 @@ public class LoginDaoImpl implements LoginDao {
 
             login = new Login(id, _name);
         } catch (SQLException e) {
+            // TODO обработать исключение
             e.printStackTrace();
         }
         return login;

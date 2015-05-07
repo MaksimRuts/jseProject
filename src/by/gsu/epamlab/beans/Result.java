@@ -2,11 +2,15 @@ package by.gsu.epamlab.beans;
 
 import java.sql.Date;
 
+// TODO класс сделать абстрактным, добавить различные реализации для печати оценки
 public class Result {
     private String login;
     private String test;
     private Date date;
     private int mark;
+
+    public Result() {
+    }
 
     public Result(String login, String test, Date date, int mark) {
         this.login = login;

@@ -7,6 +7,11 @@ public class Test {
     public Test() {
     }
 
+    public Test(String name) {
+        this(0, name);
+    }
+
+
     public Test(int testId, String name) {
         this.testId = testId;
         this.name = name;

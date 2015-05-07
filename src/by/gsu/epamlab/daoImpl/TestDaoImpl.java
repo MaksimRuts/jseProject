@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class TestDaoImpl implements TestDao {
-    PreparedStatement preparedStatement;
+    private PreparedStatement preparedStatement;
 
     @Override
     public int create(Test test) {
@@ -27,6 +27,7 @@ public class TestDaoImpl implements TestDao {
                 result = get(test.getName()).getTestId();
             }
         } catch (SQLException e) {
+            // TODO обработать исключение
             e.printStackTrace();
         }
 
@@ -37,7 +38,7 @@ public class TestDaoImpl implements TestDao {
     public Test get(String name) {
         Test test = null;
         try {
-            preparedStatement = BaseConnection.get().prepareStatement(BaseManagmentQueries.PREPARE_SELECT_NAMES_IN_TESTS);
+            preparedStatement = BaseConnection.get().prepareStatement(BaseManagmentQueries.PREPARE_SELECT_NAMES_FROM_TESTS);
             preparedStatement.setString(1, name);
             ResultSet resultSet = preparedStatement.executeQuery();
             resultSet.next();
@@ -46,6 +47,7 @@ public class TestDaoImpl implements TestDao {
 
             test = new Test(id, _name);
         } catch (SQLException e) {
+            // TODO обработать исключение
             e.printStackTrace();
         }
         return test;

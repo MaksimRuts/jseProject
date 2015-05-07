@@ -7,6 +7,10 @@ public class Login {
     public Login() {
     }
 
+    public Login(String name) {
+        this(0, name);
+    }
+
     public Login(int loginId, String name) {
         this.loginId = loginId;
         this.name = name;
