@@ -4,11 +4,11 @@ import by.gsu.epamlab.beans.Test;
 import by.gsu.epamlab.dao.TestDao;
 import by.gsu.epamlab.database.connection.BaseConnection;
 import by.gsu.epamlab.database.managment.BaseManagmentQueries;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 
 public class TestDaoImpl implements TestDao {
     private PreparedStatement preparedStatement;
@@ -21,8 +21,11 @@ public class TestDaoImpl implements TestDao {
             preparedStatement.setString(1, test.getName());
             try {
                 preparedStatement.executeUpdate();
-            } catch (MySQLIntegrityConstraintViolationException e) {
+            // TODO разобраться почему не поключается исключение
+            } catch (SQLIntegrityConstraintViolationException e) {
                 // если выскочило исклюение - значит такая запись уже есть в базе, обработка не нужна
+                // fixme убрать
+//                System.out.println("duplicate test '" + test.getName() + "'");
             } finally {
                 result = get(test.getName()).getTestId();
             }

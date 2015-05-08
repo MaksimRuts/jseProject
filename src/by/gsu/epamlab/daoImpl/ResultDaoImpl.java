@@ -15,8 +15,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
-// TODO класс сделать обычным
-public class AbstractResultDaoImpl implements ResultDao {
+public class ResultDaoImpl implements ResultDao {
     private ResultBasePattern resultDB;
     private PreparedStatement preparedStatement;
 
@@ -41,7 +40,7 @@ public class AbstractResultDaoImpl implements ResultDao {
             preparedStatement.setInt(ResultsFields.TESTID.ordinal(), resultDB.getTestId());
             preparedStatement.setDate(ResultsFields.DATA.ordinal(), resultDB.getDate());
             preparedStatement.setInt(ResultsFields.MARK.ordinal(), resultDB.getMark());
-            preparedStatement.executeLargeUpdate();
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             // TODO обработать исключение
             e.printStackTrace();
@@ -50,19 +49,29 @@ public class AbstractResultDaoImpl implements ResultDao {
 
     @Override
     public List<Result> get() {
+        return getResults(BaseManagmentQueries.PREPARE_SELECT_FROM_RESULTS);
+    }
+
+    @Override
+    public List<Result> getCurrentMonth() {
+
+        return getResults(BaseManagmentQueries.PREPARE_SELECT_FROM_RESULTS_FOR_MONTH);
+    }
+
+    private List<Result> getResults(String query) {
         List<Result> results = new LinkedList<Result>();
 
         try {
             ResultSet rs;
-            preparedStatement = BaseConnection.get().prepareStatement(BaseManagmentQueries.PREPARE_SELECT_FROM_RESULTS);
+            preparedStatement = BaseConnection.get().prepareStatement(query);
             rs = preparedStatement.executeQuery();
             while (rs.next()) {
                 Result result = new Result();
-                // в текущей реализации запроса данные обработаны неверно!!!
                 result.setLogin(rs.getString("login"));
                 result.setTest(rs.getString("test"));
-                result.setDate(Date.valueOf(rs.getString("date")));
+                result.setDate(rs.getDate("data"));
                 result.setMark(rs.getInt("mark"));
+                results.add(result);
             }
 
         } catch (SQLException e) {
@@ -73,7 +82,7 @@ public class AbstractResultDaoImpl implements ResultDao {
         return results;
     }
 
-    //public abstract prepareMark(int mark);
+
 
     private class ResultBasePattern {
         private int loginId;
@@ -122,6 +131,15 @@ public class AbstractResultDaoImpl implements ResultDao {
         public void setMark(int mark) {
             this.mark = mark;
         }
-    }
 
+        @Override
+        public String toString() {
+            return "ResultBasePattern{" +
+                    "loginId=" + loginId +
+                    ", testId=" + testId +
+                    ", date=" + date +
+                    ", mark=" + mark +
+                    '}';
+        }
+    }
 }

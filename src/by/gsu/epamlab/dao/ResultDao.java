@@ -8,4 +8,6 @@ public interface ResultDao {
     public void create(Result result);
 
     public List<Result> get();
+
+    public List<Result> getCurrentMonth();
 }
