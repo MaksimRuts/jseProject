@@ -1,13 +1,17 @@
 package by.gsu.epamlab.daoImpl;
 
 import by.gsu.epamlab.beans.Login;
-import by.gsu.epamlab.beans.Result;
+import by.gsu.epamlab.beans.AbstractResult;
 import by.gsu.epamlab.beans.Test;
+import by.gsu.epamlab.dao.LoginDao;
 import by.gsu.epamlab.dao.ResultDao;
+import by.gsu.epamlab.dao.TestDao;
 import by.gsu.epamlab.database.connection.BaseConnection;
 import by.gsu.epamlab.database.managment.BaseManagmentQueries;
 import by.gsu.epamlab.database.managment.ResultsFields;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,16 +23,39 @@ public class ResultDaoImpl implements ResultDao {
     private ResultBasePattern resultDB;
     private PreparedStatement preparedStatement;
 
+    private final AbstractResult result;
+
+    public <T extends AbstractResult> ResultDaoImpl(T result) {
+        this.result = result;
+    }
+
+    private <T> AbstractResult getInstance() {
+        try {
+
+            Constructor constructor = result.getClass().getConstructor(null);
+            return (AbstractResult)constructor.newInstance(null);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     @Override
-    public void create(Result result) {
+    public void create(AbstractResult result) {
         resultDB = new ResultBasePattern();
 
         Login login = new Login(result.getLogin());
-        LoginDaoImpl loginDao = new LoginDaoImpl();
+        LoginDao loginDao = new LoginDaoImpl();
         resultDB.setLoginId(loginDao.create(login));
 
         Test test = new Test(result.getTest());
-        TestDaoImpl testDao = new TestDaoImpl();
+        TestDao testDao = new TestDaoImpl();
         resultDB.setTestId(testDao.create(test));
 
         resultDB.setDate(result.getDate());
@@ -48,28 +75,29 @@ public class ResultDaoImpl implements ResultDao {
     }
 
     @Override
-    public List<Result> get() {
+    public List<AbstractResult> get() {
         return getResults(BaseManagmentQueries.PREPARE_SELECT_FROM_RESULTS);
     }
 
     @Override
-    public List<Result> getCurrentMonth() {
+    public List<AbstractResult> getCurrentMonth() {
 
         return getResults(BaseManagmentQueries.PREPARE_SELECT_FROM_RESULTS_FOR_MONTH);
     }
 
-    private List<Result> getResults(String query) {
-        List<Result> results = new LinkedList<Result>();
+    private List<AbstractResult> getResults(String query) {
+        List<AbstractResult> results = new LinkedList<AbstractResult>();
 
         try {
             ResultSet rs;
             preparedStatement = BaseConnection.get().prepareStatement(query);
             rs = preparedStatement.executeQuery();
             while (rs.next()) {
-                Result result = new Result();
+                AbstractResult result = getInstance();
+                // todo create e
                 result.setLogin(rs.getString("login"));
                 result.setTest(rs.getString("test"));
-                result.setDate(rs.getDate("data"));
+                result.setDate(rs.getDate("dat"));
                 result.setMark(rs.getInt("mark"));
                 results.add(result);
             }
@@ -81,8 +109,6 @@ public class ResultDaoImpl implements ResultDao {
 
         return results;
     }
-
-
 
     private class ResultBasePattern {
         private int loginId;

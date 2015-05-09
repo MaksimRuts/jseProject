@@ -3,20 +3,27 @@ package by.gsu.epamlab.beans;
 import java.sql.Date;
 
 // TODO класс сделать абстрактным, добавить различные реализации для печати оценки
-public class Result {
+public abstract class AbstractResult {
     private String login;
     private String test;
     private Date date;
     private int mark;
 
-    public Result() {
+    public AbstractResult() {
     }
 
-    public Result(String login, String test, Date date, int mark) {
+    public AbstractResult(String login, String test, Date date, int mark) {
         this.login = login;
         this.test = test;
         this.date = date;
         this.mark = mark;
+    }
+
+    public AbstractResult(String login, String test, Date date, String mark) {
+        this.login = login;
+        this.test = test;
+        this.date = date;
+        this.mark = markToInt(mark);
     }
 
     public String getLogin() {
@@ -51,8 +58,17 @@ public class Result {
         this.mark = mark;
     }
 
+    public void setMark(String mark) {
+        this.mark = markToInt(mark);
+    }
+
+//    protected String markToString(int mark);
+
+    protected abstract int markToInt(String mark);
+    protected abstract String markToString(int mark);
+
     @Override
     public String toString() {
-        return login + ';' + test + ';' + date + ';' + mark;
+        return login + ';' + test + ';' + date + ';' + markToString(mark);
     }
 }

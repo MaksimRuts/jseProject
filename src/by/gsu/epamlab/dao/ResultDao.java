@@ -1,13 +1,13 @@
 package by.gsu.epamlab.dao;
 
-import by.gsu.epamlab.beans.Result;
+import by.gsu.epamlab.beans.AbstractResult;
 
 import java.util.List;
 
 public interface ResultDao {
-    public void create(Result result);
+    public void create(AbstractResult result);
 
-    public List<Result> get();
+    public List<AbstractResult> get();
 
-    public List<Result> getCurrentMonth();
+    public List<AbstractResult> getCurrentMonth();
 }

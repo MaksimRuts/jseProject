@@ -19,7 +19,7 @@ public class BaseManagmentQueries {
             "  id int(11) primary key auto_increment,\n" +
             "  loginid int(11) not null , \n" +
             "  testid int(11) not null ,\n" +
-            "  data date not null,\n" +
+            "  dat date not null,\n" +
             "  mark int(10) not null,\n" +
             "  foreign key (loginid) references logins(idlogin),\n" +
             "  foreign key (testid) references tests(idtest)\n" +
@@ -36,19 +36,19 @@ public class BaseManagmentQueries {
     // TODO придумать как можно использовать один PrepareStatement для однообразных запросоы (проблема с ковычками)
     public static final String PREPARE_INSERT_NAMES_TO_LOGINS = "insert into logins (name) values (?);";
     public static final String PREPARE_INSERT_NAMES_TO_TESTS = "insert into tests (name) values (?);";
-    public static final String PREPARE_INSERT_TO_RESULTS = "insert into results (loginId, testId, data, mark) values (?, ?, ?, ?);";
+    public static final String PREPARE_INSERT_TO_RESULTS = "insert into results (loginId, testId, dat, mark) values (?, ?, ?, ?);";
 
     public static final String PREPARE_SELECT_NAMES_FROM_LOGINS = "select * from logins where name = ?;";
     public static final String PREPARE_SELECT_NAMES_FROM_TESTS = "select * from tests where name = ?;";
 
     // TODO переписать запрос так, что б он возвращал данные согласно классу Result (вместо ID заполнял данные именами)
-    public static final String PREPARE_SELECT_FROM_RESULTS = "select logins.name as login, tests.name as test, data, " +
+    public static final String PREPARE_SELECT_FROM_RESULTS = "select logins.name as login, tests.name as test, dat, " +
             "mark from logins, tests, results where results.loginId = logins.idLogin AND results.testId = tests.idTest;";
 
-    public static final String PREPARE_SELECT_FROM_RESULTS_FOR_MONTH = "select logins.name as login, tests.name as test, data, mark \n" +
+    public static final String PREPARE_SELECT_FROM_RESULTS_FOR_MONTH = "select logins.name as login, tests.name as test, dat, mark \n" +
             "from logins, tests, results \n" +
             "where results.loginId = logins.idLogin " +
             "AND results.testId = tests.idTest " +
-            "AND data between \"2013-03-28\" AND \"2013-03-29\" " +
-            "ORDER BY data;";
+            "AND dat between \"2013-03-28\" AND \"2013-03-29\" " +
+            "ORDER BY dat;";
 }

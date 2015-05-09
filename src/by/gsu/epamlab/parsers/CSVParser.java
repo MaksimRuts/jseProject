@@ -1,20 +1,22 @@
 package by.gsu.epamlab.parsers;
 
-import by.gsu.epamlab.beans.Result;
+import by.gsu.epamlab.beans.AbstractResult;
 
-import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.Date;
 import java.util.Scanner;
 
-public class CSVParser extends AbstractParser{
+public class CSVParser extends AbstractParser {
     private final String FILEPATCH;
     private static final String FILE_SEPARATOR = ";";
-    private enum CSVFields {LOGIN, TEST, DATE, MARK};
-    Scanner scanner = null;
 
-    public CSVParser(String filePatch) {
+    private enum CSVFields {LOGIN, TEST, DATE, MARK}
+
+    private Scanner scanner = null;
+
+    public <T extends AbstractResult> CSVParser(T result, String filePatch) {
+        super(result);
         this.FILEPATCH = filePatch;
         try {
             scanner = new Scanner(new File(FILEPATCH));
@@ -33,14 +35,16 @@ public class CSVParser extends AbstractParser{
     }
 
     @Override
-    public Result getResult() {
+    public AbstractResult getResult() {
         if (scanner != null) {
             String resultStr = scanner.nextLine();
             String[] resultsArray = resultStr.split(FILE_SEPARATOR);
-            Result result = new Result(resultsArray[CSVFields.LOGIN.ordinal()],
-                    resultsArray[CSVFields.TEST.ordinal()],
-                    Date.valueOf(resultsArray[CSVFields.DATE.ordinal()]),
-                    Integer.parseInt(resultsArray[CSVFields.MARK.ordinal()]));
+            AbstractResult result = getInstance();
+
+            result.setLogin(resultsArray[CSVFields.LOGIN.ordinal()]);
+            result.setTest(resultsArray[CSVFields.TEST.ordinal()]);
+            result.setDate(Date.valueOf(resultsArray[CSVFields.DATE.ordinal()]));
+            result.setMark(resultsArray[CSVFields.MARK.ordinal()]);
             return result;
         }
         // fixme maybe return new Result()??
