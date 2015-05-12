@@ -62,8 +62,6 @@ public abstract class AbstractResult {
         this.mark = markToInt(mark);
     }
 
-//    protected String markToString(int mark);
-
     protected abstract int markToInt(String mark);
     protected abstract String markToString(int mark);
 
