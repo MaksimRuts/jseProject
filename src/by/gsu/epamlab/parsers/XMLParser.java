@@ -1,6 +1,8 @@
 package by.gsu.epamlab.parsers;
 
-import by.gsu.epamlab.beans.AbstractResult;
+import by.gsu.epamlab.beans.Result;
+import by.gsu.epamlab.factories.ResultFactory;
+import exceptions.ParseException;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -14,8 +16,8 @@ import java.util.List;
 
 public class XMLParser extends AbstractParser {
 
-    private List<AbstractResult> results;
-    private Iterator<AbstractResult> iterator = null;
+    private List<Result> results;
+    private Iterator<Result> iterator = null;
     private final String FILEPATCH;
 
     private static enum FieldsKind {
@@ -27,9 +29,9 @@ public class XMLParser extends AbstractParser {
         }
     }
 
-    public <T extends AbstractResult> XMLParser(T result, String filePatch) {
-        super(result);
-        results = new ArrayList<AbstractResult>();
+    public XMLParser(ResultFactory factory, String filePatch) {
+        super(factory);
+        results = new ArrayList<Result>();
         iterator = results.iterator();
         this.FILEPATCH = filePatch;
 
@@ -40,11 +42,10 @@ public class XMLParser extends AbstractParser {
             reader.parse(FILEPATCH);
             iterator = results.iterator();
         } catch (SAXException e) {
-            e.printStackTrace();
+            throw new ParseException(e);
         } catch (IOException e) {
-            System.err.println("File didn't found");
+            throw new ParseException(FILE_NOT_FOUND, e);
         }
-
     }
 
     @Override
@@ -56,11 +57,16 @@ public class XMLParser extends AbstractParser {
     }
 
     @Override
-    public AbstractResult getResult() {
+    public Result nextResult() {
         if (iterator != null) {
             return iterator.next();
         }
         return null;
+    }
+
+    @Override
+    public void close() {
+
     }
 
     class InnerXMLParser extends DefaultHandler {
@@ -73,7 +79,7 @@ public class XMLParser extends AbstractParser {
             currentStartTag = "";
         }
 
-        public List<AbstractResult> getResults() {
+        public List<Result> getResults() {
             return results;
         }
 
@@ -81,13 +87,17 @@ public class XMLParser extends AbstractParser {
         public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
             currentStartTag = localName;
             if (FieldsKind.TEST.toString().equals(currentStartTag)) {
-                AbstractResult result = getInstance();
+                Result result = createInstance();
 
-                result.setLogin(login);
-                result.setTest(attributes.getValue(FieldsKind.NAME.ordinal()));
-                result.setDate(java.sql.Date.valueOf(attributes.getValue(FieldsKind.DATE.ordinal())));
-                result.setMark(attributes.getValue(FieldsKind.MARK.ordinal()));
-                results.add(result);
+                try {
+                    result.setLogin(login);
+                    result.setTest(attributes.getValue(FieldsKind.NAME.ordinal()));
+                    result.setDate(java.sql.Date.valueOf(attributes.getValue(FieldsKind.DATE.ordinal())));
+                    result.setMark(attributes.getValue(FieldsKind.MARK.ordinal()));
+                    results.add(result);
+                } catch (IllegalArgumentException e) {
+                    throw new ParseException(attributes.toString(), e);
+                }
             }
         }
 

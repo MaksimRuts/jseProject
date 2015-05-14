@@ -4,6 +4,7 @@ import by.gsu.epamlab.beans.Login;
 import by.gsu.epamlab.dao.LoginDao;
 import by.gsu.epamlab.database.connection.BaseConnection;
 import by.gsu.epamlab.database.managment.BaseManagmentQueries;
+import exceptions.DataBaseException;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,32 +12,25 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
 public class LoginDaoImpl implements LoginDao {
-    private static final String PREPARE_INSERT_LOGIN = "INSERT INTO logins (name) VALUES (?);";
-
-    private PreparedStatement preparedStatement;
-
     public LoginDaoImpl() {
     }
 
     @Override
     public int create(Login login) {
+        PreparedStatement preparedStatement = null;
         int id = 0;
         try {
-            preparedStatement = BaseConnection.get().prepareStatement(BaseManagmentQueries.PREPARE_INSERT_NAMES_TO_LOGINS);
+            preparedStatement = BaseConnection.getPreparedStatement(
+                    BaseManagmentQueries.PREPARE_INSERT_NAMES_TO_LOGINS);
             preparedStatement.setString(1, login.getName());
-            try {
-                preparedStatement.executeUpdate();
-                // TODO разобраться почему не поключается исключение
-            } catch (SQLIntegrityConstraintViolationException e) {
-                // если выскочило исклюение - значит такая запись уже есть в базе, обработка не нужна
-                // fixme убрать
-//                System.out.println("duplicate login '" + login.getName() + "'");
-            } finally {
-                id = get(login.getName()).getLoginId();
-            }
+            preparedStatement.executeUpdate();
+        } catch (SQLIntegrityConstraintViolationException e) {
+            // name is in the database. do nothing
         } catch (SQLException e) {
-            // TODO обработать исключение
-            e.printStackTrace();
+            throw new DataBaseException("Create login \'" + login.getName() + "\'", e);
+        } finally {
+            id = get(login.getName()).getLoginId();
+            BaseConnection.closePreparedStatement(preparedStatement);
         }
 
         return id;
@@ -45,18 +39,24 @@ public class LoginDaoImpl implements LoginDao {
     @Override
     public Login get(String name) {
         Login login = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
         try {
-            preparedStatement = BaseConnection.get().prepareStatement(BaseManagmentQueries.PREPARE_SELECT_NAMES_FROM_LOGINS);
+            preparedStatement = BaseConnection.getPreparedStatement(
+                    BaseManagmentQueries.PREPARE_SELECT_NAMES_FROM_LOGINS);
             preparedStatement.setString(1, name);
-            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet = preparedStatement.executeQuery();
             resultSet.next();
             int id = resultSet.getInt("idLogin");
             String _name = resultSet.getString("name");
 
             login = new Login(id, _name);
         } catch (SQLException e) {
-            // TODO обработать исключение
-            e.printStackTrace();
+            throw new DataBaseException("Get login \'" + name + "\'", e);
+        } finally {
+            BaseConnection.closeResultSet(resultSet);
+            BaseConnection.closePreparedStatement(preparedStatement);
         }
         return login;
     }

@@ -1,6 +1,6 @@
 package by.gsu.epamlab.beans;
 
-public class XMLResult extends AbstractResult {
+public class DecimalResult extends Result {
 
     @Override
     protected String markToString(int mark) {
@@ -8,7 +8,7 @@ public class XMLResult extends AbstractResult {
     }
 
     @Override
-        protected int markToInt(String mark) {
-        return (int)(Double.parseDouble(mark) * 10);
+    protected int markToInt(String mark) {
+        return (int) (Double.parseDouble(mark) * 10);
     }
 }

@@ -1,35 +1,23 @@
 package by.gsu.epamlab.parsers;
 
-import by.gsu.epamlab.beans.AbstractResult;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import by.gsu.epamlab.beans.Result;
+import by.gsu.epamlab.factories.ResultFactory;
 
 public abstract class AbstractParser {
-    public abstract boolean hasNextResult();
+    private final ResultFactory factory;
+    public static final String FILE_NOT_FOUND = "File didn't found";
 
-    public abstract AbstractResult getResult();
-
-    private final AbstractResult result;
-
-    public <T extends AbstractResult> AbstractParser(T result) {
-        this.result = result;
+    public AbstractParser(ResultFactory factory) {
+        this.factory = factory;
     }
 
-    protected AbstractResult getInstance() {
-        try {
+    public abstract boolean hasNextResult();
 
-            Constructor constructor = result.getClass().getConstructor(null);
-            return (AbstractResult) constructor.newInstance(null);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public abstract Result nextResult();
+
+    public abstract void close();
+
+    protected Result createInstance() {
+        return factory.newInstance();
     }
 }

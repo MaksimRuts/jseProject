@@ -11,7 +11,6 @@ public class Test {
         this(0, name);
     }
 
-
     public Test(int testId, String name) {
         this.testId = testId;
         this.name = name;

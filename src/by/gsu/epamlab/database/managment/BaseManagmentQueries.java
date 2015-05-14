@@ -30,10 +30,6 @@ public class BaseManagmentQueries {
             "    GROUP BY logins.idLogin\n" +
             "    ORDER BY mean DESC;";
 
-    public static final String TABLE_LOGINS = "logins";
-    public static final String TABLE_TESTS = "tests";
-
-    // TODO придумать как можно использовать один PrepareStatement для однообразных запросоы (проблема с ковычками)
     public static final String PREPARE_INSERT_NAMES_TO_LOGINS = "insert into logins (name) values (?);";
     public static final String PREPARE_INSERT_NAMES_TO_TESTS = "insert into tests (name) values (?);";
     public static final String PREPARE_INSERT_TO_RESULTS = "insert into results (loginId, testId, dat, mark) values (?, ?, ?, ?);";
@@ -41,7 +37,6 @@ public class BaseManagmentQueries {
     public static final String PREPARE_SELECT_NAMES_FROM_LOGINS = "select * from logins where name = ?;";
     public static final String PREPARE_SELECT_NAMES_FROM_TESTS = "select * from tests where name = ?;";
 
-    // TODO переписать запрос так, что б он возвращал данные согласно классу Result (вместо ID заполнял данные именами)
     public static final String PREPARE_SELECT_FROM_RESULTS = "select logins.name as login, tests.name as test, dat, " +
             "mark from logins, tests, results where results.loginId = logins.idLogin AND results.testId = tests.idTest;";
 
@@ -49,6 +44,6 @@ public class BaseManagmentQueries {
             "from logins, tests, results \n" +
             "where results.loginId = logins.idLogin " +
             "AND results.testId = tests.idTest " +
-            "AND dat between \"2013-03-28\" AND \"2013-03-29\" " +
+            "AND dat between ? AND ? " +
             "ORDER BY dat;";
 }

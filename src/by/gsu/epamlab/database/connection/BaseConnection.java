@@ -1,6 +1,11 @@
 package by.gsu.epamlab.database.connection;
 
+import exceptions.DataBaseException;
+import exceptions.ExceptionsConstants;
+
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BaseConnection {
     private static final String DRIVER_URL = "com.mysql.jdbc.Driver";
@@ -10,8 +15,9 @@ public class BaseConnection {
 
     private static Connection connection = null;
     private static Statement statement = null;
+    private static Map<String, PreparedStatement> prepStmtPool = new HashMap<String, PreparedStatement>();
 
-    private BaseConnection(){
+    private BaseConnection() {
 
     }
 
@@ -20,6 +26,7 @@ public class BaseConnection {
             Class.forName(DRIVER_URL);
         } catch (ClassNotFoundException e) {
             System.err.println("Driver loading error!!");
+            System.exit(1);
         }
     }
 
@@ -28,31 +35,88 @@ public class BaseConnection {
             try {
                 connection = DriverManager.getConnection(BASE_URL, BASE_LOGIN, BASE_PASSWORD);
             } catch (SQLException e) {
-                System.err.println("Database connecting error (" + BASE_URL + ")");
+                throw new DataBaseException("Database connecting error (" + BASE_URL + ")", e);
             }
         }
         return connection;
     }
 
-    public static void close() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                System.err.println("Connection closing error");
-            } finally {
-                connection = null;
+    public static PreparedStatement getPreparedStatement(String query) {
+        try {
+            return get().prepareStatement(query);
+        } catch (SQLException e) {
+            throw new DataBaseException(e);
+        }
+    }
+
+    public static ResultSet query(String query) {
+        try {
+            if (statement == null) {
+                statement = get().createStatement();
+            }
+            return statement.executeQuery(query);
+        } catch (SQLException e) {
+            throw new DataBaseException("executeQuery: \'" + query + "\'", e);
+        }
+    }
+
+    public static int update(String query) {
+        try {
+            if (statement == null) {
+                statement = get().createStatement();
+            }
+            return statement.executeUpdate(query);
+        } catch (SQLException e) {
+            throw new DataBaseException("executeUpdate: \'" + query + "\'", e);
+        }
+    }
+
+    public static void closeResultSet(ResultSet... sets) {
+        for (ResultSet resultSet : sets) {
+            if (resultSet != null) {
+                try {
+                    if (!resultSet.isClosed()) {
+                        resultSet.close();
+                    }
+                } catch (SQLException e) {
+                    throw new DataBaseException(ResultSet.class.getSimpleName() +
+                            ExceptionsConstants.OBJECTS_CLOSING, e);
+                }
             }
         }
     }
 
-    public static ResultSet query(String query) throws SQLException {
-        statement = get().createStatement();
-        return statement.executeQuery(query);
+    public static void closePreparedStatement(PreparedStatement preparedStatement) {
+        if (preparedStatement != null) {
+            try {
+                preparedStatement.close();
+            } catch (SQLException e) {
+                throw new DataBaseException(PreparedStatement.class.getSimpleName() +
+                        ExceptionsConstants.OBJECTS_CLOSING, e);
+            }
+        }
     }
 
-    public static int update(String query) throws SQLException {
-        statement = get().createStatement();
-        return statement.executeUpdate(query);
+    public static void closeStatement() {
+        if (statement != null) {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                throw new DataBaseException(Statement.class.getSimpleName() +
+                        ExceptionsConstants.OBJECTS_CLOSING, e);
+            }
+        }
+    }
+
+    public static void closeConnection() {
+        if (connection != null) {
+            try {
+                connection.close();
+                connection = null;
+            } catch (SQLException e) {
+                throw new DataBaseException(Connection.class.getSimpleName() +
+                        ExceptionsConstants.OBJECTS_CLOSING, e);
+            }
+        }
     }
 }

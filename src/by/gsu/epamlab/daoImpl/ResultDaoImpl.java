@@ -1,7 +1,7 @@
 package by.gsu.epamlab.daoImpl;
 
 import by.gsu.epamlab.beans.Login;
-import by.gsu.epamlab.beans.AbstractResult;
+import by.gsu.epamlab.beans.Result;
 import by.gsu.epamlab.beans.Test;
 import by.gsu.epamlab.dao.LoginDao;
 import by.gsu.epamlab.dao.ResultDao;
@@ -9,45 +9,33 @@ import by.gsu.epamlab.dao.TestDao;
 import by.gsu.epamlab.database.connection.BaseConnection;
 import by.gsu.epamlab.database.managment.BaseManagmentQueries;
 import by.gsu.epamlab.database.managment.ResultsFields;
+import by.gsu.epamlab.factories.ResultFactory;
+import exceptions.DataBaseException;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ResultDaoImpl implements ResultDao {
     private ResultBasePattern resultDB;
-    private PreparedStatement preparedStatement;
 
-    private final AbstractResult result;
+    private final ResultFactory factory;
 
-    public <T extends AbstractResult> ResultDaoImpl(T result) {
-        this.result = result;
+    public ResultDaoImpl(ResultFactory factory) {
+        this.factory = factory;
     }
 
-    private <T> AbstractResult getInstance() {
-        try {
-
-            Constructor constructor = result.getClass().getConstructor(null);
-            return (AbstractResult)constructor.newInstance(null);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-        return null;
+    private Result createInstance() {
+        return factory.newInstance();
     }
 
     @Override
-    public void create(AbstractResult result) {
+    public void create(Result result) {
+        PreparedStatement preparedStatement = null;
         resultDB = new ResultBasePattern();
 
         Login login = new Login(result.getLogin());
@@ -62,49 +50,67 @@ public class ResultDaoImpl implements ResultDao {
         resultDB.setMark(result.getMark());
 
         try {
-            preparedStatement = BaseConnection.get().prepareStatement(BaseManagmentQueries.PREPARE_INSERT_TO_RESULTS);
+            preparedStatement = BaseConnection.getPreparedStatement(BaseManagmentQueries.PREPARE_INSERT_TO_RESULTS);
             preparedStatement.setInt(ResultsFields.LOGINID.ordinal(), resultDB.getLoginId());
             preparedStatement.setInt(ResultsFields.TESTID.ordinal(), resultDB.getTestId());
             preparedStatement.setDate(ResultsFields.DATA.ordinal(), resultDB.getDate());
             preparedStatement.setInt(ResultsFields.MARK.ordinal(), resultDB.getMark());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            // TODO обработать исключение
-            e.printStackTrace();
+            throw new DataBaseException("Create result \'" + result + "\'", e);
+        } finally {
+            BaseConnection.closePreparedStatement(preparedStatement);
         }
     }
 
     @Override
-    public List<AbstractResult> get() {
-        return getResults(BaseManagmentQueries.PREPARE_SELECT_FROM_RESULTS);
+    public List<Result> get() {
+        PreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = BaseConnection.getPreparedStatement(BaseManagmentQueries.PREPARE_SELECT_FROM_RESULTS);
+            return getResults(preparedStatement);
+        } catch (SQLException e) {
+            return new LinkedList<Result>();
+        } finally {
+            BaseConnection.closePreparedStatement(preparedStatement);
+        }
     }
 
     @Override
-    public List<AbstractResult> getCurrentMonth() {
-
-        return getResults(BaseManagmentQueries.PREPARE_SELECT_FROM_RESULTS_FOR_MONTH);
+    public List<Result> getCurrentMonth() {
+        PreparedStatement preparedStatement = null;
+        try {
+            Date date = Date.valueOf(new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()));
+            preparedStatement = BaseConnection.getPreparedStatement(
+                    BaseManagmentQueries.PREPARE_SELECT_FROM_RESULTS_FOR_MONTH);
+            date.setDate(1);
+            preparedStatement.setDate(1, date);
+            date.setDate(31);
+            preparedStatement.setDate(2, date);
+            return getResults(preparedStatement);
+        } catch (SQLException e) {
+            return new LinkedList<Result>();
+        } finally {
+            BaseConnection.closePreparedStatement(preparedStatement);
+        }
     }
 
-    private List<AbstractResult> getResults(String query) {
-        List<AbstractResult> results = new LinkedList<AbstractResult>();
+    private List<Result> getResults(PreparedStatement preparedStatement) throws SQLException {
+        List<Result> results = new LinkedList<Result>();
 
+        ResultSet rs = null;
         try {
-            ResultSet rs;
-            preparedStatement = BaseConnection.get().prepareStatement(query);
             rs = preparedStatement.executeQuery();
             while (rs.next()) {
-                AbstractResult result = getInstance();
-                // todo create e
+                Result result = createInstance();
                 result.setLogin(rs.getString("login"));
                 result.setTest(rs.getString("test"));
                 result.setDate(rs.getDate("dat"));
                 result.setMark(rs.getInt("mark"));
                 results.add(result);
             }
-
-        } catch (SQLException e) {
-            // TODO обработать исключение
-            e.printStackTrace();
+        } finally {
+            BaseConnection.closeResultSet(rs);
         }
 
         return results;
